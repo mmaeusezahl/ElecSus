@@ -1,0 +1,7 @@
+scipy >= 0.12.0
+numpy
+matplotlib
+wxPython >= 2.8
+lmfit >= 0.9.5
+psutil
+sympy
