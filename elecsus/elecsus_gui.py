@@ -1916,7 +1916,7 @@ class ElecSus_GUI_Frame(wx.Frame):
 			if not self.UseExpDetuning:
 				# get detuning range from GUI controls
 				xmin,xmax,npts = [input.GetValue() for input in panel.DetuningCtrl]
-				self.x_array = np.linspace(xmin,xmax,npts)
+				self.x_array = np.linspace(xmin,xmax,int(npts))
 			else:
 				# get detuning from experimental data
 				self.x_array = self.x_fit_array
