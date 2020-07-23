@@ -35,6 +35,13 @@ from scipy.linalg import qr
 import scipy
 
 import time
+import os
+if hasattr(time, 'process_time'):
+	from time import process_time as timing # Python 3.3
+elif os.name == 'posix':
+	from time import time as timing #Timing for linux or apple
+else:
+	from time import clock as timing #Timing for windows
 
 from FundamentalConstants import e0
 
@@ -70,7 +77,7 @@ def solve_diel(chiL, chiR, chiZ, THETA, Bfield, verbose=False,force_numeric=Fals
 	if verbose: 
 		print(('B-field angle (rad, pi rad): ',THETA, THETA/np.pi))
 	
-	stt = time.clock()
+	stt = timing()
 	
 	# make chiL,R,Z arrays if not already
 	chiL = np.array(chiL)
@@ -147,17 +154,17 @@ def solve_diel(chiL, chiR, chiZ, THETA, Bfield, verbose=False,force_numeric=Fals
 									[-e_xy * cos(theta), e_x - n_sq, -e_xy*sin(theta)],
 									[(n_sq - e_z)*sin(theta), 0, e_z*cos(theta)] 			))
 
-		et1 = time.clock() - stt
+		et1 = timing() - stt
 		
 		# Substitute in angle
 		DielMat_sub = DielMat.subs(theta, pi*THETA/np.pi)
 		
-		et2 = time.clock() - stt
+		et2 = timing() - stt
 
 		# Find solutions for complex indices for a given angle
 		solns = solve(det(DielMat_sub), n_sq)
 
-		et3a = time.clock() - stt
+		et3a = timing() - stt
 		#print et3a
 		
 		# Find first refractive index
@@ -169,7 +176,7 @@ def solve_diel(chiL, chiR, chiZ, THETA, Bfield, verbose=False,force_numeric=Fals
 		n2 = np.zeros(len(chiL),dtype='complex')
 		n2old = np.zeros(len(chiL),dtype='complex')
 		
-		et3b = time.clock() - stt
+		et3b = timing() - stt
 		
 		Dsub1 = lambdify((e_x,e_xy,e_z), DielMat_sub1, 'numpy')
 		Dsub2 = lambdify((e_x,e_xy,e_z), DielMat_sub2, 'numpy')
@@ -180,13 +187,13 @@ def solve_diel(chiL, chiR, chiZ, THETA, Bfield, verbose=False,force_numeric=Fals
 		# Initialise rotation matrix
 		RotMat = np.zeros((3,3,len(chiL)),dtype='complex')
 		
-		et3c = time.clock() - stt
+		et3c = timing() - stt
 		
 		# populate refractive index arrays
 		n1 = np.sqrt(nsub1(0.5*(2.+chiL+chiR), 0.5j*(chiR-chiL), (1.0+chiZ)))
 		n2 = np.sqrt(nsub2(0.5*(2.+chiL+chiR), 0.5j*(chiR-chiL), (1.0+chiZ)))
 		
-		et3 = time.clock() - stt
+		et3 = timing() - stt
 
 		if verbose: 
 			print(('setup time:', et1, et1))
@@ -199,7 +206,7 @@ def solve_diel(chiL, chiR, chiZ, THETA, Bfield, verbose=False,force_numeric=Fals
 			#if verbose: print 'Detuning point i: ',i
 			
 			#time diagnostics
-			st = time.clock()
+			st = timing()
 			
 			
 			'''	
@@ -209,7 +216,7 @@ def solve_diel(chiL, chiR, chiZ, THETA, Bfield, verbose=False,force_numeric=Fals
 			DielMat_sub1a = DielMat_sub1a.subs(e_xy, 0.5j*(cR-cL))
 			DielMat_sub1a = DielMat_sub1a.subs(e_z, (1.0+cZ))
 			
-			et1 = time.clock() - st
+			et1 = timing() - st
 			
 			# Evaluate and convert to numpy array
 			DM = np.array(DielMat_sub1a.evalf())
@@ -218,7 +225,7 @@ def solve_diel(chiL, chiR, chiZ, THETA, Bfield, verbose=False,force_numeric=Fals
 				for jj in range(3):
 					DMa[ii,jj] = np.complex128(DM[ii,jj])
 			
-			et2 = time.clock() - st
+			et2 = timing() - st
 		
 			# use scipy to find eigenvector
 			#ev1 = Matrix(DMa).nullspace()
@@ -266,9 +273,9 @@ def solve_diel(chiL, chiR, chiZ, THETA, Bfield, verbose=False,force_numeric=Fals
 			
 			#print 'scipy: ', ev1
 			
-			et3 = time.clock() - st
+			et3 = timing() - st
 			
-			et4 = time.clock() - st
+			et4 = timing() - st
 			
 			#
 			## Now repeat the above for second eigenvector
@@ -282,7 +289,7 @@ def solve_diel(chiL, chiR, chiZ, THETA, Bfield, verbose=False,force_numeric=Fals
 			# Populate the refractive index array
 			#n2[i] = np.sqrt(nsub2(0.5*(2.+cL+cR), 0.5j*(cR-cL), (1.0+cZ)))
 
-			et5 = time.clock() - st
+			et5 = timing() - st
 			
 			'''
 		## OLD
@@ -297,12 +304,12 @@ def solve_diel(chiL, chiR, chiZ, THETA, Bfield, verbose=False,force_numeric=Fals
 				for jj in range(3):
 					DMa[ii,jj] = np.complex128(DM[ii,jj])
 					
-			et6 = time.clock() - st
+			et6 = timing() - st
 			
 			# use scipy to find eigenvector
 			ev2old = nullOld(DMa).T[0]
 			
-			et7 = time.clock() - st
+			et7 = timing() - st
 			
 			# sub in for ref. index
 			n2soln = solns[1].subs(e_x, 0.5*(2.+cL+cR))
@@ -318,7 +325,7 @@ def solve_diel(chiL, chiR, chiZ, THETA, Bfield, verbose=False,force_numeric=Fals
 			RotMat[:,:,i] = [ev1, ev2, [0,0,1]]
 			
 			
-		et_tot = time.clock() - stt
+		et_tot = timing() - stt
 		if verbose:
 			print(('Time elapsed (non-analytic angle):', et_tot))
 			

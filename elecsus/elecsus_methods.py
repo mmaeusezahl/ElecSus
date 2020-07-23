@@ -44,7 +44,10 @@ from libs import MLFittingRoutine as ML
 from libs import SAFittingRoutine as SA
 from libs import RRFittingRoutine as RR
 
-if os.name == 'posix':
+import time
+if hasattr(time, 'process_time'):
+	from time import process_time as timing # Python 3.3
+elif os.name == 'posix':
 	from time import time as timing #Timing for linux or apple
 else:
 	from time import clock as timing #Timing for windows

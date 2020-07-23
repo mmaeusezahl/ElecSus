@@ -967,23 +967,30 @@ def output_list():
 def test1():
 ### 1. Fig 3 of Generalised treatment ... Rotondaro JOSAB 2015 paper
 ### Normal Faraday spectrum
+	import os
 	import time
+	if hasattr(time, 'process_time'):
+		from time import process_time as timing # Python 3.3
+	elif os.name == 'posix':
+		from time import time as timing #Timing for linux or apple
+	else:
+		from time import clock as timing #Timing for windows
 	d = np.arange(-10000,10000,10)
 	#Voigt
 	p_dict = {'Bfield':300,'rb85frac':1,'Btheta':0,'lcell':75e-3,'T':58,'Dline':'D2','Elem':'Cs'}
 	
 	#timing:
-	st = time.clock()
+	st = timing()
 	TF = get_spectra2(d,[1,0,0],p_dict,outputs=['Iy'])
-	et = time.clock() - st
+	et = timing() - st
 	print(('E-field - Elapsed time (s):', et))
 
 	#check vs old elecsus
 	from elecsus.libs import spectra as old_spec
 	
-	st = time.clock()
+	st = timing()
 	TF_old = old_spec.get_spectra(d,p_dict,outputs=['Iy'])
-	et = time.clock() - st
+	et = timing() - st
 	print(('Old elecsus - Elapsed time (s):', et))
 	
 	index = 0 # Iy

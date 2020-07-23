@@ -8,7 +8,14 @@ from __future__ import (division, print_function, absolute_import)
 
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import time
+if hasattr(time, 'process_time'):
+	from time import process_time as timing # Python 3.3
+if os.name == 'posix':
+	from time import time as timing #Timing for linux or apple
+else:
+	from time import clock as timing #Timing for windows
 
 import sys
 sys.path.append('../')
